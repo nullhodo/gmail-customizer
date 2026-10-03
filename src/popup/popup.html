@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+        />
+        <title>Gmail Customizer</title>
+        <link
+            rel="stylesheet"
+            href="popup.css"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <header class="header">
+                <div class="logo-area">
+                    <svg
+                        class="header-icon"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+                        />
+                    </svg>
+                    <span class="app-name">Gmail Customizer</span>
+                </div>
+                <span class="version">v1.0.0</span>
+            </header>
+
+            <main class="content">
+                <!-- 1. 検索タブタイトル -->
+                <section class="setting-group">
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <svg
+                                class="setting-icon"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
+                                />
+                            </svg>
+                            <span class="label-text"
+                                >検索時タブタイトル変更</span
+                            >
+                        </div>
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                id="enableSearchTitle"
+                            />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div
+                        class="sub-option"
+                        id="searchTitleFormatArea"
+                    >
+                        <div class="select-wrapper">
+                            <select id="searchTitleFormat">
+                                <option value="query_prefix">
+                                    🔍 検索語 - Gmail
+                                </option>
+                                <option value="query_brackets">
+                                    [検索語] - Gmail
+                                </option>
+                                <option value="query_only">
+                                    検索語 - Gmail
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. 日時に曜日を追加 -->
+                <section class="setting-group">
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <svg
+                                class="setting-icon"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"
+                                />
+                            </svg>
+                            <span class="label-text">日時に曜日を追加</span>
+                        </div>
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                id="enableWeekday"
+                            />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div
+                        class="sub-options"
+                        id="weekdayOptionsArea"
+                    >
+                        <label class="checkbox-row">
+                            <input
+                                type="checkbox"
+                                id="weekdayColorize"
+                            />
+                            <span class="checkbox-text"
+                                >土日を青/赤で色分け</span
+                            >
+                        </label>
+                        <label class="checkbox-row">
+                            <input
+                                type="checkbox"
+                                id="includeTodayWeekday"
+                            />
+                            <span class="checkbox-text"
+                                >当日の時刻にも曜日を付加</span
+                            >
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 3. メール全文コピーボタン -->
+                <section class="setting-group">
+                    <div class="setting-row">
+                        <div class="setting-label">
+                            <svg
+                                class="setting-icon"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"
+                                />
+                            </svg>
+                            <span class="label-text">本文コピーボタン設置</span>
+                        </div>
+                        <label class="switch">
+                            <input
+                                type="checkbox"
+                                id="enableCopyButton"
+                            />
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div
+                        class="sub-options"
+                        id="copyButtonOptionsArea"
+                    >
+                        <label class="checkbox-row">
+                            <input
+                                type="checkbox"
+                                id="includeHeaderInCopy"
+                            />
+                            <span class="checkbox-text"
+                                >件名・送信者・日時も含めてコピー</span
+                            >
+                        </label>
+                    </div>
+                </section>
+            </main>
+        </div>
+        <script src="popup.js"></script>
+    </body>
+</html>
