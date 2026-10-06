@@ -524,13 +524,41 @@
 
             if (!targetContainer) return;
 
-            const copyBtn = document.createElement("button");
-            copyBtn.type = "button";
+            const copyBtn = document.createElement("div");
+            copyBtn.setAttribute("role", "button");
+            copyBtn.setAttribute("tabindex", "0");
             copyBtn.className = "gmc-copy-btn";
             copyBtn.setAttribute("data-tooltip", "メール本文をコピー");
             copyBtn.setAttribute("aria-label", "メール本文をコピー");
             copyBtn.setAttribute("title", "メール本文をコピー");
             copyBtn.innerHTML = ICONS.copy;
+
+            // 返信ボタンがある場合、高さや垂直アライメント、マージンを同期してy軸のズレを解消
+            if (replyBtn) {
+                const replyComputed = window.getComputedStyle(replyBtn);
+                if (replyComputed) {
+                    if (
+                        replyComputed.verticalAlign &&
+                        replyComputed.verticalAlign !== "baseline"
+                    ) {
+                        copyBtn.style.verticalAlign =
+                            replyComputed.verticalAlign;
+                    }
+                    if (
+                        replyComputed.height &&
+                        replyComputed.height !== "auto"
+                    ) {
+                        copyBtn.style.height = replyComputed.height;
+                        copyBtn.style.width = replyComputed.height;
+                    }
+                    if (replyComputed.marginTop) {
+                        copyBtn.style.marginTop = replyComputed.marginTop;
+                    }
+                    if (replyComputed.marginBottom) {
+                        copyBtn.style.marginBottom = replyComputed.marginBottom;
+                    }
+                }
+            }
 
             copyBtn.addEventListener("click", (e) => {
                 e.stopPropagation();
@@ -540,6 +568,13 @@
                     copyToClipboard(bodyText, copyBtn);
                 } else {
                     showToast("コピーする本文が見つかりませんでした");
+                }
+            });
+
+            copyBtn.addEventListener("keydown", (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    copyBtn.click();
                 }
             });
 

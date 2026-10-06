@@ -30,7 +30,7 @@
         transform 0.1s ease;
     outline: none;
     position: relative;
-    vertical-align: middle;
+    vertical-align: top;
     box-sizing: border-box;
 }
 
