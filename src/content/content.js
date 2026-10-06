@@ -4,7 +4,7 @@
     // 設定の初期値
     const settings = {
         enableSearchTitle: true,
-        searchTitleFormat: "query_prefix",
+        searchTitleFormat: "query_only",
         enableWeekday: true,
         weekdayColorize: true,
         includeTodayWeekday: true,
@@ -80,10 +80,8 @@
             case "query_brackets":
                 return `[${query}] - Gmail`;
             case "query_only":
-                return `${query} - Gmail`;
-            case "query_prefix":
             default:
-                return `🔍 ${query} - Gmail`;
+                return `${query} - Gmail`;
         }
     }
 

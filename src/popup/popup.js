@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 保存されている設定を読み込み
     const data = await chrome.storage.sync.get({
         enableSearchTitle: true,
-        searchTitleFormat: "query_prefix",
+        searchTitleFormat: "query_only",
         enableWeekday: true,
         weekdayColorize: true,
         includeTodayWeekday: true,
@@ -28,9 +28,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         includeHeaderInCopy: false
     });
 
+    // 旧フォーマットの場合は query_only に移行
+    const validFormats = ["query_only", "query_brackets"];
+    const initialFormat = validFormats.includes(data.searchTitleFormat)
+        ? data.searchTitleFormat
+        : "query_only";
+
     // UIに反映
     fields.enableSearchTitle.checked = data.enableSearchTitle;
-    fields.searchTitleFormat.value = data.searchTitleFormat;
+    fields.searchTitleFormat.value = initialFormat;
     fields.enableWeekday.checked = data.enableWeekday;
     fields.weekdayColorize.checked = data.weekdayColorize;
     fields.includeTodayWeekday.checked = data.includeTodayWeekday;
