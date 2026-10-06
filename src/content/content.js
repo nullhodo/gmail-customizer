@@ -235,6 +235,22 @@
         return span;
     }
 
+    // 要素内から.gmc-weekdayを除いた本来のテキストを取得
+    function getRawText(element) {
+        let text = "";
+        element.childNodes.forEach((node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+                text += node.textContent;
+            } else if (
+                node.nodeType === Node.ELEMENT_NODE &&
+                !node.classList.contains("gmc-weekday")
+            ) {
+                text += getRawText(node);
+            }
+        });
+        return text.trim();
+    }
+
     // メール一覧（受信トレイ、検索結果等）の日時処理
     function processInboxDates() {
         if (!settings.enableWeekday) {
@@ -248,42 +264,58 @@
             return;
         }
 
-        // Gmailの一覧の日時セル (td.xW またはクラス名にxWを含む要素)
-        const dateCells = document.querySelectorAll("td.xW, td.xW span");
+        // Gmailの一覧の日時セル (各行の td.xW のみを対象にし、子孫spanは対象にしない)
+        const dateCells = document.querySelectorAll("td.xW");
         dateCells.forEach((cell) => {
-            if (cell.closest(".gmc-weekday")) return;
-            if (cell.classList.contains("gmc-weekday")) return;
+            // セル内の既存のgmc-weekday要素を調査
+            const existingWeekdays = cell.querySelectorAll(".gmc-weekday");
+            if (existingWeekdays.length > 1) {
+                // 2つ以上ある場合は1つだけ残して余分なものを削除
+                for (let i = 1; i < existingWeekdays.length; i++) {
+                    existingWeekdays[i].remove();
+                }
+            }
+
+            // 拡張機能による追加要素を除いた元のテキストを取得
+            const rawText = getRawText(cell);
+            if (!rawText) return;
+
+            // 既にGmail自体が曜日を出している場合は既存の付加要素があれば削除してスキップ
+            if (/\([日月火水木金土]\)/.test(rawText)) {
+                if (existingWeekdays.length > 0) {
+                    existingWeekdays[0].remove();
+                }
+                return;
+            }
 
             // すでに処理済みかつ内部テキストに変更がなければスキップ
-            const currentText = cell.textContent.trim();
-            if (cell.getAttribute("data-gmc-date-done") === currentText) {
+            if (
+                cell.getAttribute("data-gmc-date-done") === rawText &&
+                existingWeekdays.length === 1
+            ) {
                 return;
             }
 
-            // 既に曜日文字が含まれている場合はスキップ
-            if (/\([日月火水木金土]\)/.test(currentText)) {
-                cell.setAttribute("data-gmc-date-done", currentText);
-                return;
-            }
-
-            // 日時情報の抽出: title属性またはaria-labelを最優先
+            // 日時情報の抽出: title属性またはaria-labelを優先
+            const titleEl = cell.querySelector("[title]") || cell;
+            const ariaEl = cell.querySelector("[aria-label]") || cell;
             const titleAttr =
-                cell.getAttribute("title") ||
-                cell.getAttribute("aria-label") ||
+                titleEl.getAttribute("title") ||
+                ariaEl.getAttribute("aria-label") ||
                 (cell.parentElement
                     ? cell.parentElement.getAttribute("title")
                     : null);
             let targetDate = parseDateString(titleAttr);
 
             // 時刻のみ（例: "14:30"）の場合
-            const isTimeOnly = /^\d{1,2}:\d{2}$/.test(currentText);
+            const isTimeOnly = /^\d{1,2}:\d{2}$/.test(rawText);
             if (!targetDate && isTimeOnly) {
                 if (settings.includeTodayWeekday) {
                     targetDate = new Date();
                 }
             } else if (!targetDate) {
                 // テキスト自体からパース
-                targetDate = parseDateString(currentText);
+                targetDate = parseDateString(rawText);
             }
 
             if (targetDate) {
@@ -292,58 +324,79 @@
                 // 既存のweekday要素があれば更新、なければ追加
                 const existing = cell.querySelector(".gmc-weekday");
                 if (existing) {
-                    existing.className =
-                        `gmc-weekday ${weekdayInfo.colorClass}`.trim();
                     existing.textContent = weekdayInfo.text;
                 } else {
                     const span = createWeekdaySpan(weekdayInfo);
+                    // 表示用要素（span）があればその中、なければセル内に配置
+                    const targetContainer =
+                        cell.querySelector("span[title]") ||
+                        cell.querySelector("span") ||
+                        cell;
                     if (isTimeOnly) {
-                        cell.insertBefore(span, cell.firstChild);
+                        targetContainer.insertBefore(
+                            span,
+                            targetContainer.firstChild
+                        );
                     } else {
-                        cell.appendChild(span);
+                        targetContainer.appendChild(span);
                     }
                 }
-                cell.setAttribute(
-                    "data-gmc-date-done",
-                    cell.textContent.trim()
-                );
+                cell.setAttribute("data-gmc-date-done", rawText);
             }
         });
     }
 
     // メール詳細画面の日時処理
     function processDetailDates() {
-        if (!settings.enableWeekday) return;
+        if (!settings.enableWeekday) {
+            document
+                .querySelectorAll(".g3 .gmc-weekday")
+                .forEach((el) => el.remove());
+            return;
+        }
 
-        // 詳細画面の日時要素: .g3, span[title], span[aria-label]
-        const detailDateElements = document.querySelectorAll(
-            ".g3, .gH .gK .g3, div[data-message-id] .g3"
-        );
+        // 詳細画面の日時要素: .g3
+        const detailDateElements = document.querySelectorAll(".g3");
         detailDateElements.forEach((el) => {
-            const currentText = el.textContent.trim();
-            if (el.getAttribute("data-gmc-date-done") === currentText) return;
-            if (/\([日月火水木金土]\)/.test(currentText)) {
-                el.setAttribute("data-gmc-date-done", currentText);
+            const existingWeekdays = el.querySelectorAll(".gmc-weekday");
+            if (existingWeekdays.length > 1) {
+                for (let i = 1; i < existingWeekdays.length; i++) {
+                    existingWeekdays[i].remove();
+                }
+            }
+
+            const rawText = getRawText(el);
+            if (!rawText) return;
+
+            if (/\([日月火水木金土]\)/.test(rawText)) {
+                if (existingWeekdays.length > 0) {
+                    existingWeekdays[0].remove();
+                }
+                return;
+            }
+
+            if (
+                el.getAttribute("data-gmc-date-done") === rawText &&
+                existingWeekdays.length === 1
+            ) {
                 return;
             }
 
             const titleAttr =
                 el.getAttribute("title") || el.getAttribute("aria-label");
             let targetDate =
-                parseDateString(titleAttr) || parseDateString(currentText);
+                parseDateString(titleAttr) || parseDateString(rawText);
 
             if (targetDate) {
                 const weekdayInfo = getWeekdayInfo(targetDate);
                 const existing = el.querySelector(".gmc-weekday");
                 if (existing) {
-                    existing.className =
-                        `gmc-weekday ${weekdayInfo.colorClass}`.trim();
                     existing.textContent = weekdayInfo.text;
                 } else {
                     const span = createWeekdaySpan(weekdayInfo);
                     el.appendChild(span);
                 }
-                el.setAttribute("data-gmc-date-done", el.textContent.trim());
+                el.setAttribute("data-gmc-date-done", rawText);
             }
         });
     }
