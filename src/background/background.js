@@ -2,7 +2,6 @@ const DEFAULT_SETTINGS = {
     enableSearchTitle: true,
     searchTitleFormat: "query_only",
     enableWeekday: true,
-    weekdayColorize: true,
     includeTodayWeekday: true,
     enableCopyButton: true,
     includeHeaderInCopy: false

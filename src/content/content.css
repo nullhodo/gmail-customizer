@@ -12,14 +12,6 @@
     user-select: none;
 }
 
-.gmc-weekday-sat {
-    color: #1a73e8 !important;
-}
-
-.gmc-weekday-sun {
-    color: #d93025 !important;
-}
-
 /* 2. メール本文コピーボタン (個別メッセージヘッダー用) */
 .gmc-copy-btn {
     display: inline-flex;

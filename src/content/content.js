@@ -6,7 +6,6 @@
         enableSearchTitle: true,
         searchTitleFormat: "query_only",
         enableWeekday: true,
-        weekdayColorize: true,
         includeTodayWeekday: true,
         enableCopyButton: true,
         includeHeaderInCopy: false
@@ -226,17 +225,12 @@
     function getWeekdayInfo(date) {
         const day = date.getDay(); // 0: 日, 1: 月, ..., 6: 土
         const text = WEEKDAYS[day];
-        let colorClass = "";
-        if (settings.weekdayColorize) {
-            if (day === 0) colorClass = "gmc-weekday-sun";
-            else if (day === 6) colorClass = "gmc-weekday-sat";
-        }
-        return { text, colorClass };
+        return { text };
     }
 
     function createWeekdaySpan(weekdayInfo) {
         const span = document.createElement("span");
-        span.className = `gmc-weekday ${weekdayInfo.colorClass}`.trim();
+        span.className = "gmc-weekday";
         span.textContent = weekdayInfo.text;
         return span;
     }
