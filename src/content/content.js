@@ -41,12 +41,63 @@
     let isApplyingTitle = false;
     let customTitleApplied = null;
 
+    // メール詳細画面（スレッド表示）を開いているかどうか判定
+    function isEmailDetailView() {
+        // 1. URLハッシュによる判定:
+        // 検索結果からメールを開いた場合: #search/{words}/{threadId}
+        // 受信トレイ等からメールを開いた場合: #inbox/{threadId}, #label/{name}/{threadId} など
+        const hash = window.location.hash || "";
+        const searchPrefix = "#search/";
+        if (hash.startsWith(searchPrefix)) {
+            const rawAfterSearch = hash.slice(searchPrefix.length);
+            // 検索クエリの後にスラッシュでスレッドIDが付いている場合はメール詳細
+            if (rawAfterSearch.includes("/")) {
+                return true;
+            }
+        } else if (
+            hash.startsWith("#inbox/") ||
+            hash.startsWith("#starred/") ||
+            hash.startsWith("#sent/") ||
+            hash.startsWith("#trash/") ||
+            hash.startsWith("#spam/") ||
+            hash.startsWith("#snoozed/") ||
+            hash.startsWith("#all/") ||
+            hash.startsWith("#label/")
+        ) {
+            const parts = hash.split("/");
+            if (
+                hash.startsWith("#label/") ? parts.length > 2 : parts.length > 1
+            ) {
+                return true;
+            }
+        }
+
+        // 2. DOM要素による判定: 件名ヘッダー(h2.hP)やメッセージ本文(.adn.ads)の存在
+        const hasDetailDOM = document.querySelector(
+            "h2.hP, .hP, .adn.ads, div[data-message-id]"
+        );
+        if (hasDetailDOM) {
+            return true;
+        }
+
+        return false;
+    }
+
     function getSearchQuery() {
+        // メール詳細画面を開いている場合は検索一覧タイトル変更の対象外
+        if (isEmailDetailView()) {
+            return null;
+        }
+
         // 1. URLのハッシュから取得 (#search/...)
         const hash = window.location.hash || "";
         const searchPrefix = "#search/";
         if (hash.startsWith(searchPrefix)) {
             const rawQuery = hash.slice(searchPrefix.length);
+            // スレッドID等の階層が含まれる場合はスキップ
+            if (rawQuery.includes("/")) {
+                return null;
+            }
             try {
                 return decodeURIComponent(rawQuery.replace(/\+/g, " ")).trim();
             } catch {
@@ -61,12 +112,13 @@
         if (
             searchInput &&
             searchInput.value.trim() &&
-            (hash.includes("search") || hash === "" || hash === "#inbox")
+            hash.startsWith("#search/") &&
+            !hash.slice("#search/".length).includes("/")
         ) {
-            // URLが検索画面であるか、現在検索結果が表示されている場合
+            // URLが検索結果一覧画面である場合のみ
             const isSearchResultPage =
                 document.querySelector('div[role="main"]') &&
-                hash.includes("search");
+                !document.querySelector("h2.hP, .hP, .adn.ads");
             if (isSearchResultPage) {
                 return searchInput.value.trim();
             }
@@ -106,6 +158,12 @@
             }
         } else {
             // 検索画面ではない場合、カスタムタイトルのトラッキングを解除
+            if (customTitleApplied && document.title === customTitleApplied) {
+                const subjectEl = document.querySelector("h2.hP, .hP");
+                if (subjectEl && subjectEl.textContent.trim()) {
+                    document.title = `${subjectEl.textContent.trim()} - Gmail`;
+                }
+            }
             customTitleApplied = null;
         }
     }
